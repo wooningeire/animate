@@ -22,7 +22,7 @@ WANIM is a custom-made file format that preserves individual layers and frames. 
 
 ### Internals
 Internally, WANIM draws inspiration from the chunk-based organization of the PNG format. A WANIM file is simply a series of strictly consecutive chunks, organized as follows, in order:
-| Byte size *(Data type)*	| Description	|
+| Byte size *(Data type)*	| Description   |
 |---    					|---    		|
 | 1 *(char)* 				| Identifier declaring this chunk's type. |
 | 8 *(uint64)*				| Length, in bytes, of this chunk's data. |
@@ -32,7 +32,7 @@ Internally, WANIM draws inspiration from the chunk-based organization of the PNG
 A chunk's data can be further divided depending on the chunk's type.
 
 * **`A`** — Project data.
-	| Byte size *(Data type)*	| Description	|
+	| Byte size *(Data type)*	| Description   |
 	|---    					|---    		|
 	| 4 *(uint32)* 				| Frame width. |
 	| 4 *(uint32)*				| Frame height. |
