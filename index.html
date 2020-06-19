@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <!-- todo - cut down on number of files -->
+        <!-- Classes -->
+        <script src="layer.js" defer></script>     <!-- Layer and frame mechanics -->
+        <script src="canvas.js" defer></script>    <!-- Canvas ease of use -->
+        <script src="log.js" defer></script>       <!-- History tracking and items -->
+        <script src="color.js" defer></script>     <!-- Color manipulation -->
+
+        <script src="celements.js" defer></script> <!-- Custom Elements -->
+
+        <script src="index.js" defer></script>     <!-- Settings and major objects -->
+
+        <!-- Action -->
+        <script src="timeline.js" defer></script>  <!-- Timeline controls -->
+        <script src="init.js" defer></script>      <!-- Initiation -->
+        <script src="draw.js" defer></script>      <!-- Tools and editing mechanics -->
+        <script src="export.js" type="module" defer></script>    <!-- Exporting -->
+
+        <!-- GIF encoding – https://github.com/jnordberg/gif.js -->
+        <!-- WEBM encoding – https://github.com/antimatter15/whammy -->
+
+        <link rel="stylesheet" href="index.css" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700,800,900" />
+    </head>
+
+    <body>
+        <main>
+            <drawing-zone>
+                <div class="background transformed-viewport"></div>
+                <canvas class="onions transformed-viewport"></canvas>
+                <div class="layers transformed-viewport"></div> <!-- Preivew canvases -->
+                <canvas class="drawer"></canvas> <!-- Interactive canvas -->
+                <div class="cursor"></div>
+            </drawing-zone>
+
+            <timeline-zone>
+                <div class="timeline-topbar">
+                    <div class="clock">
+                        <input class="clock-input" id="clock-input" type="text" pattern="[\d]" title=" " /> <!-- type="text" for more control over input -->
+                        <!-- type="number" min="0" max="2147483647" step="100" -->
+                        <div class="clock-display">
+                            <span class="sec"></span><span class="mil">0</span>
+                        </div>
+                        <label for="clock-input">ms</label>
+                    </div>
+
+                    <div class="add-layer-button button-small">+</div>
+                    <div class="remove-layer-button button-small">&#x2212;</div> <!-- Subtraction sign -->
+                </div>
+
+                <div class="timebar"></div>
+                <div class="timeline display-frames"></div>
+            </timeline-zone>
+
+            <settings-zone style="text-align: right;">
+                <label for="frame-start">Frame start</label> <input class="frame-start" id="frame-start" type="text" pattern="[\d]" /><label for="frame-start">ms</label><br />
+                <label for="frame-duration">Frame duration</label> <input class="frame-duration" id="frame-duration" type="text" pattern="[\d]" /><label for="frame-duration">ms</label><br />
+                <label for="frame-end">Frame end</label> <input class="frame-end" id="frame-end" type="text" pattern="[\d]" /><label for="frame-end">ms</label><br /><br />
+
+                <button class="frame-delete-button">Delete this frame</button> <button onclick="view.ms = view.currentFrame(true).start;">To start of frame</button><br /><br />
+
+                <button onclick="view.framePrev();">Previous frame</button> <button onclick="view.frameNext();">Next frame</button><br /><br />
+
+                <button onclick="showZone(`files`);">Export settings</button> <button class="playtest-button">Playtest</button>
+            </settings-zone>
+
+            <files-zone class="hidden">
+                <button onclick="showZone(`timeline`);" style="position: fixed;">x</button>
+
+                <table>
+                    <tr>
+                        <th rowspan="2">Export</th>
+                        <th>Full animation</th>
+                        <td class="exporta-wanim option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-wanim" />
+                            </svg>
+                            <div>WANIM</div>
+                        </td>
+                        <td class="exporta-gif option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-gif" />
+                            </svg>
+                            <div>GIF</div>
+                        </td>
+                        <td class="exporta-png option disabled">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-png" />
+                            </svg>
+                            <div>PNG</div>
+                        </td>
+                        <td class="exporta-webm option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-webm" />
+                            </svg>
+                            <div>WEBM</div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Frame</th>
+                        <td class="exportf-png option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-png" />
+                            </svg>
+                            <div>PNG</div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th rowspan="2">Import</th>
+                        <th>Full animation</th>
+                        <td class="import-wanim option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-wanim" />
+                            </svg>
+                            <div>WANIM</div>
+                        </td>
+                        <td class="import-video option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-videodefault" />
+                            </svg>
+                            <div>Video</div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>Frame</th>
+                        <td class="import-image option">
+                            <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                                <use href="#file-imagedefault" />
+                            </svg>
+                            <div>Image</div>
+                        </td>
+                    </tr>
+                </table>
+
+
+                <!--<div>
+                    <div class="title">Full animation</div>
+                    <div class="exporta-wanim option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-wanim" />
+                        </svg>
+                        <div>WANIM</div>
+                    </div>
+                    <div class="exporta-gif option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-gif" />
+                        </svg>
+                        <div>GIF</div>
+                    </div>
+                    <div class="exporta-png option disabled">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-png" />
+                        </svg>
+                        <div>PNG</div>
+                    </div>
+                    <div class="exporta-webm option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-webm" />
+                        </svg>
+                        <div>WEBM</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="title">Frame</div>
+                    <div class="exportf-png option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-png" />
+                        </svg>
+                        <div>PNG</div>
+                    </div>
+                </div>
+
+                <br />
+
+                <div>
+                    <div class="title">Full animation</div>
+                    <div class="import-wanim option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-wanim" />
+                        </svg>
+                        <div>WANIM</div>
+                    </div>
+                    <div class="import-video option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-videodefault" />
+                        </svg>
+                        <div>Video</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="title">Frame</div>
+                    <div class="import-image option">
+                        <svg viewBox="0 0 160 160" height="64" xmlns="http://www.w3.org/2000/svg">
+                            <use href="#file-imagedefault" />
+                        </svg>
+                        <div>Image</div>
+                    </div>
+                </div>-->
+            </files-zone>
+        </main>
+
+        <svg class="drawer-context-menu" width="80" height="144" xmlns="http://www.w3.org/2000/svg">
+            <rect width="80" height="144" fill="rgba(255, 255, 255, .3)" />
+
+            <rect x="0" y="0" width="80" height="120" fill="transparent" class="brush-size-slider-bound" />
+            <g class="brush-size-slider-visual">
+                <rect x="10" y="8" width="4" height="104" fill="rgba(0, 0, 0, .5)" />
+                <g transform="translate(0 0)" class="brush-size-slider">
+                    <rect width="24" height="16" fill="rgba(0, 0, 0, .5)" />
+                    <text transform="translate(28 0)" y="8" alignment-baseline="middle" textLength="48"></text>
+                </g>
+            </g>
+
+            <foreignObject y="120">
+                <input type="text" class="color-input" />
+            </foreignObject>
+        </svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg">
+            <desc>This element defines the icons used in the (im/ex)port menu.</desc>
+
+            <defs>
+                <g id="file-wanim">
+                    <path d="M 80,20  L20, 44  L 80, 68 L140, 44 Z
+                             M 65,62  L20, 80  L 80,104 L140, 80 L95,62
+                             M 65,98  L20,116  L 80,140 L140,116 L95,98" fill="none" stroke="#fff" stroke-width="8px" />
+                    <path d="M100,28  L80, 36  L100, 44 L120, 36
+                             M 40,52  L60, 44  L 80, 52 L 60, 60" fill="#fff" stroke="#fff" />
+                </g>
+
+                <g id="file-gif">
+                    <use href="#file-imagedefault" />
+                    <rect x="96" y="106" width="24" height="24" fill="#fff" />
+                    <rect x="102" y="82" width="12" height="12" fill="#fff" />
+                    <rect x="105" y="55" width="6" height="6" fill="#fff" />
+
+                    <rect x="72" y="112" width="12" height="12" fill="#fff" />
+                    <rect x="74" y="84" width="8" height="8" fill="#fff" />
+
+                    <rect x="45" y="115" width="6" height="6" fill="#fff" />
+                </g>
+
+                <g id="file-png">
+                    <use href="#file-imagedefault" />
+
+                </g>
+
+                <g id="file-webm">
+                    <use href="#file-videodefault" />
+                    <path d="M 58.382264,92.152522 30,27.245682 29.999429,84.574258 56.518796,123.73682 68.96555,116.31943 75.625847,80.98713 87.134674,105.7192 101.11534,97.330799 106.58472,65.95083 103.15527,63.893161 91.308032,85.00574 79.76928,49.861568 70.477437,44.133673" fill="#fff" />
+                </g>
+
+                <g id="file-imagedefault">
+                    <path d="M95,20 L30,20 L30,140 L130,140 L130,55" fill="none" stroke="#fff" stroke-width="8" />
+                </g>
+
+                <g id="file-videodefault">
+                    <path d="M30,20 L30,140 L130,80 Z" fill="none" stroke="#fff" stroke-width="8" />
+                </g>
+            </defs>
+        </svg>
+    </body>
+</html>
